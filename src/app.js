@@ -3,7 +3,9 @@ import { Header, Footer, CartModal, Toast } from "@/components";
 
 export default class AppComponent extends BaseComponent {
   constructor($el) {
-    super($el);
+    super($el, {
+      preserveSelectors: ["#main"], // 메인 뷰 보존
+    });
     this.state = {
       cartModalVisible: true,
     };
@@ -75,23 +77,7 @@ export default class AppComponent extends BaseComponent {
     }
   }
 
-  // reRender 메서드를 오버라이드하여 메인 뷰 보존
-  reRender() {
-    // 현재 메인 뷰의 내용을 저장
-    const mainElement = this.target.querySelector("#main");
-    const mainContent = mainElement ? mainElement.innerHTML : "";
-
-    // 기본 reRender 호출
-    super.reRender();
-
-    // 메인 뷰 내용 복원
-    const newMainElement = this.target.querySelector("#main");
-    if (newMainElement && mainContent) {
-      newMainElement.innerHTML = mainContent;
-    }
-  }
-
-  componentDidUpdate(_, prevState, nextState) {
+  componentDidUpdate(_, __, nextState) {
     this.initializeComponent();
     this.initializeToast();
 

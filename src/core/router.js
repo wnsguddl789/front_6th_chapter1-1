@@ -106,9 +106,17 @@ const router = async () => {
   // #main 요소를 타겟으로 변경
   const mainElement = getElement("#main");
 
+  // 기존 뷰 인스턴스 정리
+  if (mainElement?._viewInstance && mainElement._viewInstance.componentWillUnmount) {
+    mainElement._viewInstance.componentWillUnmount();
+  }
+
   // 새로운 컴포넌트 인스턴스 생성 및 렌더링
   const view = new match.route.view(mainElement);
   mainElement.innerHTML = view.template();
+
+  // 뷰 인스턴스를 메인 요소에 저장
+  mainElement._viewInstance = view;
 
   // 컴포넌트 마운트 이벤트 호출
   if (view.componentDidMount) {

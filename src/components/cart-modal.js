@@ -51,33 +51,40 @@ export default class CartModal extends BaseComponent {
   initializeEventHandlers() {
     this.target.addEventListener("click", (event) => {
       // 모달 닫기 (오버레이 클릭 또는 닫기 버튼)
-      if (event.target.matches(".cart-modal-overlay") || event.target.closest('[data-action="close-modal"]')) {
+      if (
+        event.target.matches(".cart-modal-overlay") ||
+        event.target.closest('[data-action="close-modal"]') ||
+        event.target.closest("#cart-modal-close-btn")
+      ) {
         this.close();
       }
 
       // 아이템 삭제
-      const removeButton = event.target.closest('[data-action="remove-item"]');
+      const removeButton =
+        event.target.closest('[data-action="remove-item"]') || event.target.closest(".cart-item-remove-btn");
       if (removeButton) {
         const productId = removeButton.dataset.productId;
         this.handleRemoveItem(productId);
       }
 
       // 수량 증가
-      const increaseButton = event.target.closest('[data-action="increase-quantity"]');
+      const increaseButton =
+        event.target.closest('[data-action="increase-quantity"]') || event.target.closest(".quantity-increase-btn");
       if (increaseButton) {
         const productId = increaseButton.dataset.productId;
         this.handleIncreaseQuantity(productId);
       }
 
       // 수량 감소
-      const decreaseButton = event.target.closest('[data-action="decrease-quantity"]');
+      const decreaseButton =
+        event.target.closest('[data-action="decrease-quantity"]') || event.target.closest(".quantity-decrease-btn");
       if (decreaseButton) {
         const productId = decreaseButton.dataset.productId;
         this.handleDecreaseQuantity(productId);
       }
 
       // 장바구니 비우기
-      if (event.target.closest('[data-action="clear-cart"]')) {
+      if (event.target.closest('[data-action="clear-cart"]') || event.target.closest("#cart-modal-clear-cart-btn")) {
         this.handleClearCart();
       }
 
@@ -94,7 +101,10 @@ export default class CartModal extends BaseComponent {
       }
 
       // 선택된 아이템 삭제
-      if (event.target.closest('[data-action="remove-selected"]')) {
+      if (
+        event.target.closest('[data-action="remove-selected"]') ||
+        event.target.closest("#cart-modal-remove-selected-btn")
+      ) {
         this.handleRemoveSelected();
       }
     });
@@ -121,10 +131,7 @@ export default class CartModal extends BaseComponent {
     const items = getCartItems();
     const summary = getCartSummary();
 
-    this.setState({
-      items,
-      summary,
-    });
+    this.setState({ items, summary });
   }
 
   // 모달 닫기
@@ -221,6 +228,7 @@ export default class CartModal extends BaseComponent {
             </h2>
             <button 
               data-action="close-modal"
+              id="cart-modal-close-btn"
               class="text-gray-400 hover:text-gray-600 p-1"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,7 +344,7 @@ export default class CartModal extends BaseComponent {
             <button 
               data-action="decrease-quantity" 
               data-product-id="${item.id}"
-              class="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100"
+              class="quantity-decrease-btn w-7 h-7 flex items-center justify-center border border-gray-300 rounded-l-md bg-gray-50 hover:bg-gray-100"
             >
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
@@ -346,14 +354,14 @@ export default class CartModal extends BaseComponent {
               type="number" 
               value="${item.quantity}" 
               min="1" 
-              class="w-12 h-7 text-center text-sm border-t border-b border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
+              class="quantity-input w-12 h-7 text-center text-sm border-t border-b border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
               disabled 
               data-product-id="${item.id}"
             >
             <button 
               data-action="increase-quantity" 
               data-product-id="${item.id}"
-              class="w-7 h-7 flex items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100"
+              class="quantity-increase-btn w-7 h-7 flex items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 hover:bg-gray-100"
             >
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -370,7 +378,7 @@ export default class CartModal extends BaseComponent {
           <button 
             data-action="remove-item" 
             data-product-id="${item.id}"
-            class="mt-1 text-xs text-red-600 hover:text-red-800"
+            class="cart-item-remove-btn mt-1 text-xs text-red-600 hover:text-red-800"
           >
             삭제
           </button>
@@ -413,6 +421,7 @@ export default class CartModal extends BaseComponent {
               ? /* html */ `
               <button
                 data-action="remove-selected"
+                id="cart-modal-remove-selected-btn"
                 class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors text-sm"
               >
                 선택한 상품 삭제 (${selectedCount}개)
@@ -423,6 +432,7 @@ export default class CartModal extends BaseComponent {
           <div class="flex gap-2">
             <button 
               data-action="clear-cart"
+              id="cart-modal-clear-cart-btn"
               class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors text-sm"
             >
               전체 비우기

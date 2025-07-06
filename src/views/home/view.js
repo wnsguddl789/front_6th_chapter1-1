@@ -11,15 +11,14 @@ export default class HomePage extends BaseComponent {
   constructor(target) {
     super(target);
 
-    // 디바운스된 함수들을 미리 생성하여 저장
-    this.debouncedHandlers = {
-      search: debounce((event) => this.handleChangeSearch(event), HomePageViewModel.DEBOUNCE_TIME),
-      limit: debounce((event) => this.handleChangeLimit(event), HomePageViewModel.DEBOUNCE_TIME),
-      sort: debounce((event) => this.handleChangeSort(event), HomePageViewModel.DEBOUNCE_TIME),
-    };
-
     // 토스트 컴포넌트 초기화
     this.toast = null;
+
+    // debounce 함수를 생성자에서 한 번만 생성
+    this.debouncedHandleChangeSearch = debounce(
+      (event) => this.handleChangeSearch(event),
+      HomePageViewModel.DEBOUNCE_TIME,
+    );
   }
 
   initialState() {
@@ -226,6 +225,7 @@ export default class HomePage extends BaseComponent {
         </div>
       `;
     }
+
     return /* html */ `
       <div class="min-h-screen bg-gray-50">
         
@@ -299,14 +299,7 @@ export default class HomePage extends BaseComponent {
               <div class="space-y-2">
                 <!-- 1depth 카테고리 -->
                 <div class="flex flex-wrap gap-2">
-                  ${
-                    this.state.loading
-                      ? '<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>'
-                      : /* html */ `
-                        <div class="mb-4 text-sm text-gray-600">
-                          총 <span class="font-medium text-gray-900">${this.state.pagination.total}</span>개의 상품
-                        </div>`
-                  }
+                  ${this.state.loading ? '<div class="text-sm text-gray-500 italic">카테고리 로딩 중...</div>' : ""}
                 </div>
                 <!-- 2depth 카테고리 -->
               </div>
@@ -357,6 +350,16 @@ export default class HomePage extends BaseComponent {
           
           <!-- 상품 목록 -->
           <div class="mb-6">
+            <!-- 상품 개수 정보 -->
+            ${
+              this.state.loading
+                ? ""
+                : /*html */ `
+                <div class="mb-4 text-sm text-gray-600">
+                  총 <span class="font-medium text-gray-900">${this.state.pagination.total}개</span>의 상품
+                </div>
+              `
+            }
             <div>
               <!-- 상품 그리드 -->
               <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
@@ -456,7 +459,7 @@ export default class HomePage extends BaseComponent {
     this.target.addEventListener("input", (event) => {
       switch (event.target.id) {
         case "search-input": {
-          this.debouncedHandlers.search(event);
+          this.debouncedHandleChangeSearch(event);
           break;
         }
       }
@@ -465,11 +468,11 @@ export default class HomePage extends BaseComponent {
     this.target.addEventListener("change", (event) => {
       switch (event.target.id) {
         case "limit-select": {
-          this.debouncedHandlers.limit(event);
+          this.handleChangeLimit(event);
           break;
         }
         case "sort-select": {
-          this.debouncedHandlers.sort(event);
+          this.handleChangeSort(event);
           break;
         }
       }
