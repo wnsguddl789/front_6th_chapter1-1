@@ -9,6 +9,9 @@ const CART_INITIAL_STATE = {
   count: 0,
   totalPrice: 0,
   isVisible: false, // 장바구니 모달 표시 여부
+  // 선택 상태 관리
+  selectedItems: [], // 선택된 아이템 ID 배열
+  isAllSelected: false, // 전체 선택 여부
 };
 
 /**
@@ -27,7 +30,7 @@ class CartStore extends Store {
     this.persistStore = createPersistStore(this, {
       storageType: "local",
       storageKey: "shopping-cart-v1",
-      whitelist: ["items", "count", "totalPrice"],
+      whitelist: ["items", "count", "totalPrice", "selectedItems", "isAllSelected"],
       debounceTime: 300,
       version: 1,
       transforms: [
@@ -45,7 +48,7 @@ class CartStore extends Store {
                 addedAt: item.addedAt || Date.now(),
               })) || [],
           }),
-          // 복원 시 7일 이상 된 아이템 제거
+          // 복원 시 7일 이상 된 아이템 제거 및 선택 상태 정리
           in: (state) => {
             const validItems = state.items?.filter((item) => item.addedAt > Date.now() - 7 * 24 * 60 * 60 * 1000) || [];
 
@@ -54,11 +57,17 @@ class CartStore extends Store {
               return total + parseInt(item.lprice) * (item.quantity || 1);
             }, 0);
 
+            // 유효한 아이템 ID만 선택 상태에 유지
+            const validItemIds = new Set(validItems.map((item) => item.id));
+            const validSelectedItems = (state.selectedItems || []).filter((id) => validItemIds.has(id));
+
             return {
               ...state,
               items: validItems,
               count: validItems.length,
               totalPrice,
+              selectedItems: validSelectedItems,
+              isAllSelected: validItems.length > 0 && validSelectedItems.length === validItems.length,
             };
           },
         },
@@ -96,6 +105,22 @@ class CartStore extends Store {
    */
   getIsVisible() {
     return this.getStateByKey("isVisible") || false;
+  }
+
+  /**
+   * 선택된 아이템 ID 배열 반환
+   * @returns {Array} 선택된 아이템 ID 배열
+   */
+  getSelectedItems() {
+    return this.getStateByKey("selectedItems") || [];
+  }
+
+  /**
+   * 전체 선택 여부 반환
+   * @returns {boolean} 전체 선택 여부
+   */
+  getIsAllSelected() {
+    return this.getStateByKey("isAllSelected") || false;
   }
 
   /**
@@ -145,7 +170,12 @@ class CartStore extends Store {
   removeItem(productId) {
     const currentItems = this.getItems();
     const newItems = currentItems.filter((item) => item.id !== productId);
-    this.updateCartState(newItems, "REMOVE_ITEM");
+
+    // 선택 상태에서도 제거
+    const selectedItems = this.getSelectedItems();
+    const newSelectedItems = selectedItems.filter((id) => id !== productId);
+
+    this.updateCartStateWithSelection(newItems, newSelectedItems, "REMOVE_ITEM");
   }
 
   /**
@@ -193,7 +223,62 @@ class CartStore extends Store {
    * 장바구니 비우기
    */
   clearCart() {
-    this.updateCartState([], "CLEAR_CART");
+    this.updateCartStateWithSelection([], [], "CLEAR_CART");
+  }
+
+  /**
+   * 전체 선택/해제
+   * @param {boolean} isSelected - 선택 여부
+   */
+  selectAll(isSelected) {
+    const items = this.getItems();
+    const selectedItems = isSelected ? items.map((item) => item.id) : [];
+
+    this.setStates(
+      {
+        selectedItems,
+        isAllSelected: isSelected,
+      },
+      "SELECT_ALL",
+    );
+  }
+
+  /**
+   * 개별 아이템 선택/해제
+   * @param {string} productId - 상품 ID
+   * @param {boolean} isSelected - 선택 여부
+   */
+  selectItem(productId, isSelected) {
+    const currentSelectedItems = this.getSelectedItems();
+    let newSelectedItems;
+
+    if (isSelected) {
+      newSelectedItems = [...currentSelectedItems, productId];
+    } else {
+      newSelectedItems = currentSelectedItems.filter((id) => id !== productId);
+    }
+
+    const items = this.getItems();
+    const isAllSelected = items.length > 0 && newSelectedItems.length === items.length;
+
+    this.setStates(
+      {
+        selectedItems: newSelectedItems,
+        isAllSelected,
+      },
+      "SELECT_ITEM",
+    );
+  }
+
+  /**
+   * 선택된 아이템들 삭제
+   */
+  removeSelectedItems() {
+    const currentItems = this.getItems();
+    const selectedItems = this.getSelectedItems();
+    const newItems = currentItems.filter((item) => !selectedItems.includes(item.id));
+
+    this.updateCartStateWithSelection(newItems, [], "REMOVE_SELECTED");
   }
 
   /**
@@ -236,6 +321,28 @@ class CartStore extends Store {
   }
 
   /**
+   * 장바구니 상태와 선택 상태 함께 업데이트 (내부 메서드)
+   * @param {Array} items - 새로운 아이템 배열
+   * @param {Array} selectedItems - 새로운 선택된 아이템 ID 배열
+   * @param {string} action - 액션 타입
+   */
+  updateCartStateWithSelection(items, selectedItems, action) {
+    const totalPrice = this.calculateTotalPrice(items);
+    const isAllSelected = items.length > 0 && selectedItems.length === items.length;
+
+    this.setStates(
+      {
+        items,
+        count: items.length,
+        totalPrice,
+        selectedItems,
+        isAllSelected,
+      },
+      action,
+    );
+  }
+
+  /**
    * 특정 상품이 장바구니에 있는지 확인
    * @param {string} productId - 상품 ID
    * @returns {boolean} 장바구니에 있는지 여부
@@ -255,18 +362,44 @@ class CartStore extends Store {
   }
 
   /**
+   * 특정 상품이 선택되어 있는지 확인
+   * @param {string} productId - 상품 ID
+   * @returns {boolean} 선택 여부
+   */
+  isItemSelected(productId) {
+    return this.getSelectedItems().includes(productId);
+  }
+
+  /**
+   * 선택된 아이템들의 총 가격 계산
+   * @returns {number} 선택된 아이템들의 총 가격
+   */
+  getSelectedItemsTotal() {
+    const items = this.getItems();
+    const selectedItems = this.getSelectedItems();
+
+    return items
+      .filter((item) => selectedItems.includes(item.id))
+      .reduce((total, item) => total + parseInt(item.lprice) * (item.quantity || 1), 0);
+  }
+
+  /**
    * 장바구니 상태 요약 정보 반환
    * @returns {Object} 장바구니 요약 정보
    */
   getSummary() {
     const items = this.getItems();
     const totalQuantity = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const selectedItems = this.getSelectedItems();
 
     return {
       itemCount: items.length,
       totalQuantity,
       totalPrice: this.getTotalPrice(),
       isEmpty: items.length === 0,
+      selectedCount: selectedItems.length,
+      selectedTotal: this.getSelectedItemsTotal(),
+      isAllSelected: this.getIsAllSelected(),
     };
   }
 }

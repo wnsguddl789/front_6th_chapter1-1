@@ -148,7 +148,6 @@ export default class HomePage extends BaseComponent {
 
     // 검색어, 정렬, 페이지 제한 등이 변경되었을 때 새로운 데이터 가져오기
     const filtersChanged = JSON.stringify(prevState.filters) !== JSON.stringify(nextState.filters);
-    console.log(filtersChanged);
     const paginationChanged = prevState.pagination.limit !== nextState.pagination.limit;
 
     if (filtersChanged || paginationChanged) {
@@ -439,7 +438,7 @@ export default class HomePage extends BaseComponent {
               
               <!-- 장바구니 버튼 -->
               <button 
-                class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md hover:bg-blue-700 transition-colors" 
+                class="w-full bg-blue-600 text-white text-sm py-2 px-3 rounded-md hover:bg-blue-700 transition-colors add-to-cart-btn" 
                 data-product-id="${product.productId}"
                 id="add-to-cart-btn"
               >

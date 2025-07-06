@@ -6,6 +6,10 @@ import {
   removeFromCart,
   updateCartItemQuantity,
   clearCart,
+  selectAllCartItems,
+  selectCartItem,
+  removeSelectedCartItems,
+  isCartItemSelected,
 } from "@/store";
 
 export default class CartModal extends BaseComponent {
@@ -24,10 +28,10 @@ export default class CartModal extends BaseComponent {
         totalQuantity: 0,
         totalPrice: 0,
         isEmpty: true,
+        selectedCount: 0,
+        selectedTotal: 0,
+        isAllSelected: false,
       },
-      // 선택된 아이템 관리
-      selectedItems: new Set(),
-      isAllSelected: false,
     };
     super.initialState();
   }
@@ -117,21 +121,9 @@ export default class CartModal extends BaseComponent {
     const items = getCartItems();
     const summary = getCartSummary();
 
-    // 기존 선택 상태 유지하면서 없는 아이템 제거
-    const selectedItems = new Set();
-    const itemIds = new Set(items.map((item) => item.id));
-
-    this.state.selectedItems.forEach((id) => {
-      if (itemIds.has(id)) {
-        selectedItems.add(id);
-      }
-    });
-
     this.setState({
       items,
       summary,
-      selectedItems,
-      isAllSelected: items.length > 0 && selectedItems.size === items.length,
     });
   }
 
@@ -143,13 +135,7 @@ export default class CartModal extends BaseComponent {
   }
 
   handleRemoveItem(productId) {
-    if (confirm("이 상품을 장바구니에서 제거하시겠습니까?")) {
-      removeFromCart(productId);
-      // 선택 상태에서도 제거
-      const newSelectedItems = new Set(this.state.selectedItems);
-      newSelectedItems.delete(productId);
-      this.setState({ selectedItems: newSelectedItems });
-    }
+    removeFromCart(productId);
   }
 
   handleIncreaseQuantity(productId) {
@@ -168,7 +154,6 @@ export default class CartModal extends BaseComponent {
 
   handleClearCart() {
     clearCart();
-    this.setState({ selectedItems: new Set(), isAllSelected: false });
 
     // 토스트 표시
     if (this.props.toast) {
@@ -177,28 +162,17 @@ export default class CartModal extends BaseComponent {
   }
 
   handleSelectAll(checked) {
-    if (checked) {
-      const allItemIds = new Set(this.state.items.map((item) => item.id));
-      this.setState({ selectedItems: allItemIds, isAllSelected: true });
-    } else {
-      this.setState({ selectedItems: new Set(), isAllSelected: false });
-    }
+    selectAllCartItems(checked);
   }
 
   handleItemSelect(productId, checked) {
-    const newSelectedItems = new Set(this.state.selectedItems);
-    if (checked) {
-      newSelectedItems.add(productId);
-    } else {
-      newSelectedItems.delete(productId);
-    }
-
-    const isAllSelected = this.state.items.length > 0 && newSelectedItems.size === this.state.items.length;
-    this.setState({ selectedItems: newSelectedItems, isAllSelected });
+    selectCartItem(productId, checked);
   }
 
   handleRemoveSelected() {
-    if (this.state.selectedItems.size === 0) {
+    const selectedCount = this.state.summary.selectedCount;
+
+    if (selectedCount === 0) {
       if (this.props.toast) {
         this.props.toast.show("info", "선택된 상품이 없습니다.");
       } else {
@@ -207,26 +181,12 @@ export default class CartModal extends BaseComponent {
       return;
     }
 
-    this.state.selectedItems.forEach((productId) => {
-      removeFromCart(productId);
-    });
-    this.setState({ selectedItems: new Set(), isAllSelected: false });
+    removeSelectedCartItems();
 
     // 토스트 표시
     if (this.props.toast) {
       this.props.toast.show("info", "선택된 상품들이 삭제되었습니다.");
     }
-  }
-
-  // 선택된 아이템들의 총 가격 계산
-  getSelectedItemsTotal() {
-    let total = 0;
-    this.state.items.forEach((item) => {
-      if (this.state.selectedItems.has(item.id)) {
-        total += parseInt(item.lprice) * item.quantity;
-      }
-    });
-    return total;
   }
 
   template() {
@@ -237,7 +197,8 @@ export default class CartModal extends BaseComponent {
 
     return /* html */ `
       <!-- 모달 오버레이 -->
-      <div class="cart-modal-overlay flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 fixed inset-0 bg-black bg-opacity-50 z-50">
+      <div class="cart-modal-overlay flex min-h-full items-center justify-center p-0 sm:p-4 fixed inset-0 bg-black bg-opacity-50 z-50">
+      
         <!-- 모달 컨테이너 -->
         <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
           <!-- 헤더 -->
@@ -254,7 +215,7 @@ export default class CartModal extends BaseComponent {
               장바구니
               ${
                 this.state.summary.itemCount > 0
-                  ? `<span class="text-sm font-normal text-gray-600 ml-1">(${this.state.summary.itemCount})</span>`
+                  ? /* html */ `<span class="text-sm font-normal text-gray-600 ml-1">(${this.state.summary.itemCount})</span>`
                   : ""
               }
             </h2>
@@ -320,7 +281,7 @@ export default class CartModal extends BaseComponent {
             type="checkbox" 
             id="cart-modal-select-all-checkbox" 
             class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
-            ${this.state.isAllSelected ? "checked" : ""}
+            ${this.state.summary.isAllSelected ? "checked" : ""}
           >
           전체선택 (${this.state.summary.itemCount}개)
         </label>
@@ -336,7 +297,7 @@ export default class CartModal extends BaseComponent {
   }
 
   cartItemTemplate(item) {
-    const isSelected = this.state.selectedItems.has(item.id);
+    const isSelected = isCartItemSelected(item.id);
 
     return /* html */ `
       <div class="flex items-center py-3 border-b border-gray-100 cart-item" data-product-id="${item.id}">
@@ -419,8 +380,8 @@ export default class CartModal extends BaseComponent {
   }
 
   cartFooterTemplate() {
-    const selectedCount = this.state.selectedItems.size;
-    const selectedTotal = this.getSelectedItemsTotal();
+    const selectedCount = this.state.summary.selectedCount;
+    const selectedTotal = this.state.summary.selectedTotal;
 
     return /* html */ `
       <!-- 하단 액션 -->

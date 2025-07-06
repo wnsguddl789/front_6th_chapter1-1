@@ -130,6 +130,68 @@ export const clearCart = () => {
 };
 
 /**
+ * 선택 관련 액션 함수들
+ */
+
+/**
+ * 전체 선택/해제
+ * @param {boolean} isSelected - 선택 여부
+ * @returns {boolean} 성공 여부
+ */
+export const selectAllCartItems = (isSelected) => {
+  try {
+    cartStore.selectAll(isSelected);
+    console.log(isSelected ? "전체 선택됨" : "전체 선택 해제됨");
+    return true;
+  } catch (error) {
+    console.error("전체 선택 중 오류:", error);
+    return false;
+  }
+};
+
+/**
+ * 개별 아이템 선택/해제
+ * @param {string} productId - 상품 ID
+ * @param {boolean} isSelected - 선택 여부
+ * @returns {boolean} 성공 여부
+ */
+export const selectCartItem = (productId, isSelected) => {
+  try {
+    if (!productId) {
+      console.error("상품 ID가 제공되지 않았습니다.");
+      return false;
+    }
+
+    cartStore.selectItem(productId, isSelected);
+    return true;
+  } catch (error) {
+    console.error("아이템 선택 중 오류:", error);
+    return false;
+  }
+};
+
+/**
+ * 선택된 아이템들 삭제
+ * @returns {boolean} 성공 여부
+ */
+export const removeSelectedCartItems = () => {
+  try {
+    const selectedCount = cartStore.getSelectedItems().length;
+    if (selectedCount === 0) {
+      console.warn("선택된 아이템이 없습니다.");
+      return false;
+    }
+
+    cartStore.removeSelectedItems();
+    console.log(`선택된 ${selectedCount}개 아이템이 삭제되었습니다.`);
+    return true;
+  } catch (error) {
+    console.error("선택된 아이템 삭제 중 오류:", error);
+    return false;
+  }
+};
+
+/**
  * 장바구니 모달 토글
  * @returns {boolean} 현재 표시 상태
  */
@@ -220,6 +282,43 @@ export const getCartItemQuantity = (productId) => {
 };
 
 /**
+ * 선택 관련 조회 함수들
+ */
+
+/**
+ * 선택된 아이템 ID 목록 조회
+ * @returns {Array} 선택된 아이템 ID 배열
+ */
+export const getSelectedCartItems = () => {
+  return cartStore.getSelectedItems();
+};
+
+/**
+ * 전체 선택 여부 조회
+ * @returns {boolean} 전체 선택 여부
+ */
+export const isAllCartItemsSelected = () => {
+  return cartStore.getIsAllSelected();
+};
+
+/**
+ * 특정 상품의 선택 여부 조회
+ * @param {string} productId - 상품 ID
+ * @returns {boolean} 선택 여부
+ */
+export const isCartItemSelected = (productId) => {
+  return cartStore.isItemSelected(productId);
+};
+
+/**
+ * 선택된 아이템들의 총 가격 조회
+ * @returns {number} 선택된 아이템들의 총 가격
+ */
+export const getSelectedCartItemsTotal = () => {
+  return cartStore.getSelectedItemsTotal();
+};
+
+/**
  * 장바구니 상태 구독 함수들
  */
 
@@ -266,6 +365,24 @@ export const subscribeToCartVisibility = (callback) => {
  */
 export const subscribeToCart = (callback) => {
   return cartStore.subscribeGlobal(callback);
+};
+
+/**
+ * 선택 상태 구독
+ * @param {Function} callback - 콜백 함수
+ * @returns {Function} 구독 해제 함수
+ */
+export const subscribeToCartSelection = (callback) => {
+  return cartStore.subscribe("selectedItems", callback);
+};
+
+/**
+ * 전체 선택 상태 구독
+ * @param {Function} callback - 콜백 함수
+ * @returns {Function} 구독 해제 함수
+ */
+export const subscribeToCartSelectAll = (callback) => {
+  return cartStore.subscribe("isAllSelected", callback);
 };
 
 /**
@@ -322,6 +439,12 @@ export default {
   increaseCartItemQuantity,
   decreaseCartItemQuantity,
   clearCart,
+
+  // 선택 관련 액션들
+  selectAllCartItems,
+  selectCartItem,
+  removeSelectedCartItems,
+
   toggleCartModal,
   showCartModal,
   hideCartModal,
@@ -334,12 +457,20 @@ export default {
   hasCartItem,
   getCartItemQuantity,
 
+  // 선택 관련 조회들
+  getSelectedCartItems,
+  isAllCartItemsSelected,
+  isCartItemSelected,
+  getSelectedCartItemsTotal,
+
   // 구독 함수들
   subscribeToCartItems,
   subscribeToCartCount,
   subscribeToCartTotalPrice,
   subscribeToCartVisibility,
   subscribeToCart,
+  subscribeToCartSelection,
+  subscribeToCartSelectAll,
 
   // 개발용 함수들
   debugCart,
