@@ -1,32 +1,34 @@
 import BaseComponent from "@/core/component";
-import { Header, Footer, CartModal } from "@/components";
+import { Header, Footer, CartModal, Toast } from "@/components";
 
 export default class AppComponent extends BaseComponent {
   constructor($el) {
     super($el);
-    this.state = {};
+    this.state = {
+      cartModalVisible: true,
+    };
 
     // 헤더와 푸터 컴포넌트 인스턴스
     this.headerComponent = null;
     this.footerComponent = null;
     this.cartModalComponent = null;
+    this.toastComponent = null;
   }
 
   initialState() {
-    this.state = {
-      cartModalVisible: false,
-    };
     super.initialState();
   }
 
   componentDidMount() {
     this.initializeComponent();
+    this.initializeToast();
 
     const modalElement = this.target.querySelector("#cart-modal-container");
     if (modalElement) {
       this.cartModalComponent = new CartModal(modalElement, {
         isVisible: this.state.cartModalVisible,
         onClose: () => this.closeCartModal(),
+        toast: this.toastComponent,
       });
     }
   }
@@ -41,6 +43,9 @@ export default class AppComponent extends BaseComponent {
     }
     if (this.cartModalComponent) {
       this.cartModalComponent.componentWillUnmount?.();
+    }
+    if (this.toastComponent) {
+      this.toastComponent.componentWillUnmount?.();
     }
   }
 
@@ -57,6 +62,16 @@ export default class AppComponent extends BaseComponent {
     const footerElement = this.target.querySelector("#footer-container");
     if (footerElement) {
       this.footerComponent = new Footer(footerElement, {});
+    }
+  }
+
+  /**
+   * 토스트 컴포넌트 초기화
+   */
+  initializeToast() {
+    const toastContainer = this.target.querySelector("#toast-container");
+    if (toastContainer && !this.toastComponent) {
+      this.toastComponent = new Toast(toastContainer);
     }
   }
 
@@ -78,15 +93,17 @@ export default class AppComponent extends BaseComponent {
 
   componentDidUpdate(_, prevState, nextState) {
     this.initializeComponent();
+    this.initializeToast();
 
     // 모달 상태가 변경되면 CartModal 재생성
-    if (prevState.cartModalVisible !== nextState.cartModalVisible) {
+    if (nextState.cartModalVisible) {
       // 새로운 CartModal 생성
       const modalElement = this.target.querySelector("#cart-modal-container");
       if (modalElement) {
         this.cartModalComponent = new CartModal(modalElement, {
           isVisible: nextState.cartModalVisible,
           onClose: () => this.closeCartModal(),
+          toast: this.toastComponent,
         });
       }
     }
