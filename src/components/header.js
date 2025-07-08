@@ -1,6 +1,5 @@
 import BaseComponent from "@/core/component";
-import { navigateTo } from "@/core/router";
-import { getCartCount, subscribeToCartCount } from "@/store";
+import { getCartCount, subscribeToCartCount, showCartModal } from "@/store";
 
 export default class Header extends BaseComponent {
   constructor(target, props) {
@@ -11,9 +10,7 @@ export default class Header extends BaseComponent {
   }
 
   initialState() {
-    this.state = {
-      cartCount: 0,
-    };
+    this.state = { cartCount: 0 };
     super.initialState();
   }
 
@@ -34,13 +31,7 @@ export default class Header extends BaseComponent {
     this.target.addEventListener("click", (event) => {
       if (event.target.closest("#cart-icon-btn")) {
         event.preventDefault();
-        this.props.openCartModal();
-      }
-
-      // 로고 클릭 이벤트 (홈으로 이동)
-      if (event.target.matches('[data-link=""]')) {
-        event.preventDefault();
-        this.handleHomeClick();
+        showCartModal();
       }
     });
   }
@@ -56,11 +47,6 @@ export default class Header extends BaseComponent {
     this.unsubscribeCartCount = subscribeToCartCount((count) => {
       this.updateCartCount(count);
     });
-  }
-
-  handleHomeClick() {
-    // 라우터를 통한 홈 페이지 이동
-    navigateTo("/");
   }
 
   updateCartCount(count) {

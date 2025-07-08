@@ -46,75 +46,88 @@ export default class CartModal extends BaseComponent {
     if (this.unsubscribeCart) {
       this.unsubscribeCart();
     }
+
+    // 이벤트 리스너 제거
+    if (this.eventListenerAttached) {
+      this.target.removeEventListener("click", this.handleClick);
+      document.removeEventListener("keydown", this.handleKeyDown);
+      this.eventListenerAttached = false;
+    }
   }
 
   initializeEventHandlers() {
-    this.target.addEventListener("click", (event) => {
-      // 모달 닫기 (오버레이 클릭 또는 닫기 버튼)
+    if (this.eventListenerAttached) return;
+    this.eventListenerAttached = true;
+
+    // 핸들러 고정
+    this.handleClick = (event) => {
+      const target = event.target;
+
+      // === 모달 닫기 ===
       if (
-        event.target.matches(".cart-modal-overlay") ||
-        event.target.closest('[data-action="close-modal"]') ||
-        event.target.closest("#cart-modal-close-btn")
+        target.matches(".cart-modal-overlay") ||
+        target.closest('[data-action="close-modal"]') ||
+        target.closest("#cart-modal-close-btn")
       ) {
         this.close();
+        return;
       }
 
-      // 아이템 삭제
-      const removeButton =
-        event.target.closest('[data-action="remove-item"]') || event.target.closest(".cart-item-remove-btn");
-      if (removeButton) {
-        const productId = removeButton.dataset.productId;
-        this.handleRemoveItem(productId);
-      }
-
-      // 수량 증가
-      const increaseButton =
-        event.target.closest('[data-action="increase-quantity"]') || event.target.closest(".quantity-increase-btn");
-      if (increaseButton) {
-        const productId = increaseButton.dataset.productId;
+      // === 수량 증가 ===
+      if (target.closest(".quantity-increase-btn")) {
+        const productId = target.closest(".quantity-increase-btn").dataset.productId;
         this.handleIncreaseQuantity(productId);
+        return;
       }
 
-      // 수량 감소
-      const decreaseButton =
-        event.target.closest('[data-action="decrease-quantity"]') || event.target.closest(".quantity-decrease-btn");
-      if (decreaseButton) {
-        const productId = decreaseButton.dataset.productId;
+      // === 수량 감소 ===
+      if (target.closest(".quantity-decrease-btn")) {
+        const productId = target.closest(".quantity-decrease-btn").dataset.productId;
         this.handleDecreaseQuantity(productId);
+        return;
       }
 
-      // 장바구니 비우기
-      if (event.target.closest('[data-action="clear-cart"]') || event.target.closest("#cart-modal-clear-cart-btn")) {
+      // === 개별 아이템 삭제 ===
+      if (target.matches('[data-action="remove-item"]') || target.matches(".cart-item-remove-btn")) {
+        const productId = target.dataset.productId;
+        this.handleRemoveItem(productId);
+        return;
+      }
+
+      // === 장바구니 전체 비우기 ===
+      if (target.matches('[data-action="clear-cart"]') || target.closest("#cart-modal-clear-cart-btn")) {
         this.handleClearCart();
+        return;
       }
 
-      // 전체 선택 토글
-      if (event.target.matches("#cart-modal-select-all-checkbox")) {
-        this.handleSelectAll(event.target.checked);
+      // === 전체 선택 토글 ===
+      if (target.matches("#cart-modal-select-all-checkbox")) {
+        this.handleSelectAll(target.checked);
+        return;
       }
 
-      // 개별 아이템 선택
-      const itemCheckbox = event.target.closest(".cart-item-checkbox");
-      if (itemCheckbox) {
-        const productId = itemCheckbox.dataset.productId;
-        this.handleItemSelect(productId, itemCheckbox.checked);
+      // === 개별 아이템 선택 ===
+      if (target.matches(".cart-item-checkbox")) {
+        const productId = target.dataset.productId;
+        this.handleItemSelect(productId, target.checked);
+        return;
       }
 
-      // 선택된 아이템 삭제
-      if (
-        event.target.closest('[data-action="remove-selected"]') ||
-        event.target.closest("#cart-modal-remove-selected-btn")
-      ) {
+      // === 선택된 아이템 삭제 ===
+      if (target.matches('[data-action="remove-selected"]') || target.closest("#cart-modal-remove-selected-btn")) {
         this.handleRemoveSelected();
+        return;
       }
-    });
+    };
 
-    // ESC 키로 모달 닫기
-    document.addEventListener("keydown", (event) => {
+    this.handleKeyDown = (event) => {
       if (event.key === "Escape" && this.props.isVisible) {
         this.close();
       }
-    });
+    };
+
+    this.target.addEventListener("click", this.handleClick);
+    document.addEventListener("keydown", this.handleKeyDown);
   }
 
   initializeCartSubscription() {
@@ -146,7 +159,8 @@ export default class CartModal extends BaseComponent {
   }
 
   handleIncreaseQuantity(productId) {
-    const item = this.state.items.find((item) => item.id === productId);
+    const item = getCartItems().find((item) => item.id === productId);
+    console.log("handleIncreaseQuantity", productId);
     if (item) {
       updateCartItemQuantity(productId, item.quantity + 1);
     }
@@ -161,11 +175,7 @@ export default class CartModal extends BaseComponent {
 
   handleClearCart() {
     clearCart();
-
-    // 토스트 표시
-    if (this.props.toast) {
-      this.props.toast.show("info", "장바구니가 모두 비워졌습니다.");
-    }
+    this.props.toast.show("info", "장바구니가 모두 비워졌습니다.");
   }
 
   handleSelectAll(checked) {
@@ -180,34 +190,30 @@ export default class CartModal extends BaseComponent {
     const selectedCount = this.state.summary.selectedCount;
 
     if (selectedCount === 0) {
-      if (this.props.toast) {
-        this.props.toast.show("info", "선택된 상품이 없습니다.");
-      } else {
-        alert("선택된 상품이 없습니다.");
-      }
+      this.props.toast.show("info", "선택된 상품이 없습니다.");
       return;
     }
 
     removeSelectedCartItems();
 
     // 토스트 표시
-    if (this.props.toast) {
-      this.props.toast.show("info", "선택된 상품들이 삭제되었습니다.");
-    }
+    this.props.toast.show("info", "선택된 상품들이 삭제되었습니다.");
   }
 
   template() {
-    // 모달이 보이지 않으면 빈 HTML 반환
     if (!this.props.isVisible) {
       return "";
     }
+
+    const summary = getCartSummary();
+    const hasItem = summary.itemCount > 0;
 
     return /* html */ `
       <!-- 모달 오버레이 -->
       <div class="cart-modal-overlay flex min-h-full items-center justify-center p-0 sm:p-4 fixed inset-0 bg-black bg-opacity-50 z-50">
       
         <!-- 모달 컨테이너 -->
-        <div class="relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
+        <div class="cart-modal relative bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[90vh] overflow-hidden">
           <!-- 헤더 -->
           <div class="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
             <h2 class="text-lg font-bold text-gray-900 flex items-center">
@@ -221,8 +227,8 @@ export default class CartModal extends BaseComponent {
               </svg>
               장바구니
               ${
-                this.state.summary.itemCount > 0
-                  ? /* html */ `<span class="text-sm font-normal text-gray-600 ml-1">(${this.state.summary.itemCount})</span>`
+                hasItem
+                  ? /* html */ `<span class="text-sm font-normal text-gray-600 ml-1">(${summary.itemCount})</span>`
                   : ""
               }
             </h2>
@@ -244,11 +250,11 @@ export default class CartModal extends BaseComponent {
 
           <!-- 컨텐츠 -->
           <div class="flex flex-col max-h-[calc(90vh-120px)]">
-            ${this.state.summary.isEmpty ? this.emptyCartTemplate() : this.cartWithItemsTemplate()}
+            ${summary.isEmpty ? this.emptyCartTemplate() : this.cartWithItemsTemplate()}
           </div>
 
           <!-- 푸터 (총 가격 및 액션 버튼) -->
-          ${!this.state.summary.isEmpty ? this.cartFooterTemplate() : ""}
+          ${!summary.isEmpty ? this.cartFooterTemplate() : ""}
         </div>
       </div>
     `;
@@ -281,6 +287,7 @@ export default class CartModal extends BaseComponent {
   }
 
   cartWithItemsTemplate() {
+    const summary = getCartSummary();
     return /* html */ `
       <!-- 전체 선택 섹션 -->
       <div class="p-4 border-b border-gray-200 bg-gray-50">
@@ -289,9 +296,9 @@ export default class CartModal extends BaseComponent {
             type="checkbox" 
             id="cart-modal-select-all-checkbox" 
             class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
-            ${this.state.summary.isAllSelected ? "checked" : ""}
+            ${summary.isAllSelected ? "checked" : ""}
           >
-          전체선택 (${this.state.summary.itemCount}개)
+          전체선택 (${summary.itemCount}개)
         </label>
       </div>
       
@@ -388,8 +395,7 @@ export default class CartModal extends BaseComponent {
   }
 
   cartFooterTemplate() {
-    const selectedCount = this.state.summary.selectedCount;
-    const selectedTotal = this.state.summary.selectedTotal;
+    const { selectedCount, selectedTotal } = getCartSummary();
 
     return /* html */ `
       <!-- 하단 액션 -->
