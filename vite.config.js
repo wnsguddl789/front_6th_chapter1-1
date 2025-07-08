@@ -2,6 +2,8 @@ import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
+  // GitHub Pages 배포를 위한 base 경로 설정
+  base: process.env.VITE_BASE_PATH || "/",
   test: {
     globals: true,
     environment: "jsdom",

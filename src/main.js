@@ -23,7 +23,13 @@ const initializeApp = () => {
   const $root = document.querySelector("#root");
   new AppComponent($root);
 
-  router();
+  if (import.meta.env.MODE === "test") {
+    setTimeout(() => {
+      router();
+    }, 0);
+  } else {
+    router();
+  }
 };
 
 // 애플리케이션 시작
