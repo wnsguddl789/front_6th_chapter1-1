@@ -29,7 +29,7 @@ class CartStore extends Store {
   setupPersistStore() {
     this.persistStore = createPersistStore(this, {
       storageType: "local",
-      storageKey: "shopping-cart-v1",
+      storageKey: "shopping_cart",
       whitelist: ["items", "count", "totalPrice", "selectedItems", "isAllSelected"],
       debounceTime: 300,
       version: 1,
@@ -253,9 +253,9 @@ class CartStore extends Store {
     let newSelectedItems;
 
     if (isSelected) {
-      newSelectedItems = [...currentSelectedItems, productId];
+      newSelectedItems = [...new Set([...currentSelectedItems, productId])];
     } else {
-      newSelectedItems = currentSelectedItems.filter((id) => id !== productId);
+      newSelectedItems = [...new Set(currentSelectedItems.filter((id) => id !== productId))];
     }
 
     const items = this.getItems();
@@ -401,6 +401,21 @@ class CartStore extends Store {
       selectedTotal: this.getSelectedItemsTotal(),
       isAllSelected: this.getIsAllSelected(),
     };
+  }
+
+  /**
+   * 장바구니를 초기 상태로 완전히 리셋
+   * 테스트 환경에서 사용하기 위한 메서드
+   */
+  reset() {
+    // 모든 구독자 해제
+    this.subscribers.clear();
+
+    // 상태를 초기 상태로 리셋
+    this.state = { ...CART_INITIAL_STATE };
+
+    // 퍼시스트 스토어 재설정
+    this.setupPersistStore();
   }
 }
 
