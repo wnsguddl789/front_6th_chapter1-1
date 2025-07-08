@@ -1,4 +1,10 @@
-import { HomePageView, NotFoundPageView } from "@/views";
+import {
+  HomePageView,
+  NotFoundPageView,
+  ProductDetailPageView,
+  ProductListHeaderComponent,
+  ProductDetailHeaderComponent,
+} from "@/views";
 import { getElement } from "@/utils";
 
 const pathToRegex = (path) => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
@@ -83,8 +89,8 @@ const removePopstateListener = (handler) => {
 
 const router = async () => {
   const routes = [
-    { path: "/", view: HomePageView },
-    // { path: "/login", view: LoginView },
+    { path: "/", view: HomePageView, header: ProductListHeaderComponent },
+    { path: "/product/:id", view: ProductDetailPageView, header: ProductDetailHeaderComponent },
   ];
 
   // Test each route for potential match
@@ -103,17 +109,47 @@ const router = async () => {
     };
   }
 
+  // URL 파라미터 추출
+  const params = {};
+  if (match.result && match.route.path !== "/404") {
+    const paramNames = match.route.path.match(/:(\w+)/g);
+    if (paramNames) {
+      paramNames.forEach((paramName, index) => {
+        const key = paramName.substring(1); // : 제거
+        params[key] = match.result[index + 1];
+      });
+    }
+  }
+
   // #main 요소를 타겟으로 변경
   const mainElement = getElement("#main");
+  const headerElement = getElement("#header-container");
+
+  // mainElement가 없으면 라우팅을 중단 (앱이 아직 렌더링되지 않았을 수 있음)
+  if (!mainElement) {
+    console.warn("Main element not found. Skipping routing.");
+    return;
+  }
+
+  if (!headerElement) {
+    console.warn("Header element not found Skipping routing.");
+    return;
+  }
 
   // 기존 뷰 인스턴스 정리
-  if (mainElement?._viewInstance && mainElement._viewInstance.componentWillUnmount) {
+  if (mainElement._viewInstance && mainElement._viewInstance.componentWillUnmount) {
     mainElement._viewInstance.componentWillUnmount();
   }
 
-  // 새로운 컴포넌트 인스턴스 생성 및 렌더링
-  const view = new match.route.view(mainElement);
+  if (headerElement._viewInstance && headerElement._viewInstance.componentWillUnmount) {
+    headerElement._viewInstance.componentWillUnmount();
+  }
+
+  // 새로운 컴포넌트 인스턴스 생성 및 렌더링 (파라미터 전달)
+  const view = new match.route.view(mainElement, params);
+  const header = new match.route.header(headerElement, params);
   mainElement.innerHTML = view.template();
+  headerElement.innerHTML = header.template();
 
   // 뷰 인스턴스를 메인 요소에 저장
   mainElement._viewInstance = view;
@@ -121,6 +157,10 @@ const router = async () => {
   // 컴포넌트 마운트 이벤트 호출
   if (view.componentDidMount) {
     view.componentDidMount();
+  }
+
+  if (header.componentDidMount) {
+    header.componentDidMount();
   }
 };
 
