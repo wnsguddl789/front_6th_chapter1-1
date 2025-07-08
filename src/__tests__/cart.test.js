@@ -1,11 +1,6 @@
 import { findByText, getByText, queryByText, screen } from "@testing-library/dom";
 import { userEvent } from "@testing-library/user-event";
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest";
-
-const goTo = (path) => {
-  window.history.pushState({}, "", path);
-  window.dispatchEvent(new Event("popstate"));
-};
+import { describe, expect, test } from "vitest";
 
 // 장바구니에 상품을 추가하는 헬퍼 함수
 const addProductToCart = async (productName) => {
@@ -15,19 +10,6 @@ const addProductToCart = async (productName) => {
 
   expect(screen.getByText("장바구니에 추가되었습니다")).toBeInTheDocument();
 };
-
-beforeAll(async () => {
-  document.body.innerHTML = '<div id="root"></div>';
-  await import("../main.js");
-});
-
-beforeEach(() => goTo("/"));
-
-afterEach(() => {
-  // 각 테스트 후 상태 초기화
-  document.getElementById("root").innerHTML = "";
-  localStorage.clear();
-});
 
 describe("1. 장바구니 모달", () => {
   test("장바구니 아이콘 클릭 시 모달 형태로 장바구니가 열린다", async () => {
