@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [main]
 
+  workflow_dispatch:
+
 # GitHub Pages 배포를 위한 권한 설정
 permissions:
   contents: read
