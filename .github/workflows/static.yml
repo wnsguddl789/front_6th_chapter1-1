@@ -60,7 +60,7 @@ jobs:
           VITE_BASE_PATH: /front_6th_chapter1-1/
 
       - name: Copy public folder
-        run: cp -r public/* dist/
+        run: cp -r public/* dist/front_6th_chapter1-1/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
