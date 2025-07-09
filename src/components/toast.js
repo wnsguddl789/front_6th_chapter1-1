@@ -105,7 +105,7 @@ export default class Toast extends BaseComponent {
     const config = this.getToastConfig();
 
     return /* html */ `
-      <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-up">
+      <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[100] animate-slide-up">
         <div class="${config.bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 max-w-sm">
           <div class="flex-shrink-0">
             ${config.icon}

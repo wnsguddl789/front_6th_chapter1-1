@@ -25,7 +25,7 @@ export default class ProductListHeaderComponent extends BaseComponent {
   template() {
     const count = getCartCount();
     return /* html */ `
-      <header class="bg-white shadow-sm sticky top-0 z-40">
+      <header class="bg-white shadow-sm fixed top-0 left-0 right-0 z-40">
         <div class="max-w-md mx-auto px-4 py-4">
           <div class="flex items-center justify-between">
             <h1 class="text-xl font-bold text-gray-900">
