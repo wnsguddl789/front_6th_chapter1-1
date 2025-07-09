@@ -59,6 +59,9 @@ jobs:
           # GitHub Pages의 base path 설정
           VITE_BASE_PATH: /front_6th_chapter1-1/
 
+      - name: Copy public folder
+        run: cp -r public/* dist/
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
