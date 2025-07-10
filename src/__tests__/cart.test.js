@@ -142,8 +142,6 @@ describe("2-2. 각 장바구니 상품의 수량을 감소할 수 있다", () =>
     // 수량 감소 버튼 클릭
     await userEvent.click(document.querySelector(".quantity-decrease-btn"));
 
-    screen.logTestingPlaygroundURL();
-
     // 수량이 감소했는지 확인
     expect(document.querySelector(".quantity-input").value).toBe("1");
   });

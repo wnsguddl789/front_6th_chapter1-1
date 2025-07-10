@@ -27,13 +27,18 @@ describe("7. 카테고리 선택", () => {
     const category1 = await screen.findByText("생활/건강");
     await userEvent.click(category1);
 
+    await screen.findByText("상품을 불러오는 중...");
+    await screen.findByText("300개");
+
     const category2 = await screen.findByText("자동차용품");
     await userEvent.click(category2);
 
+    await screen.findByText("상품을 불러오는 중...");
     await screen.findByText("11개");
 
     await userEvent.click(await screen.findByText("전체"));
 
+    await screen.findByText("상품을 불러오는 중...");
     expect(await screen.findByText("340개")).toBeInTheDocument();
   });
 });

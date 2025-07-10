@@ -611,17 +611,21 @@ export default class HomePage extends BaseComponent {
       
       <!-- 상품 목록 -->
       <div class="mb-6">
-        <!-- 상품 개수 정보 -->
-        ${
-          this.state.loading
-            ? ""
-            : /*html */ `
-            <div class="mb-4 text-sm text-gray-600">
-              ${HomePageViewModel.MESSAGES.TOTAL_PRODUCTS} <span class="font-medium text-gray-900">${this.state.pagination.total}${HomePageViewModel.MESSAGES.PRODUCTS_UNIT}</span>${HomePageViewModel.MESSAGES.PRODUCTS_SUFFIX}
-            </div>
-          `
-        }
         <div>
+          <!-- 상품 개수 정보 -->
+          ${
+            this.state.loading
+              ? /*html */ `
+              <div class="mb-4 text-sm text-gray-600">
+                ${HomePageViewModel.MESSAGES.LOADING_PRODUCTS}
+              </div>
+              `
+              : /*html */ `
+              <div class="mb-4 text-sm text-gray-600">
+                ${HomePageViewModel.MESSAGES.TOTAL_PRODUCTS} <span class="font-medium text-gray-900">${this.state.pagination.total}${HomePageViewModel.MESSAGES.PRODUCTS_UNIT}</span>${HomePageViewModel.MESSAGES.PRODUCTS_SUFFIX}
+              </div>
+            `
+          }
           <!-- 상품 그리드 -->
           <div class="grid grid-cols-2 gap-4 mb-6" id="products-grid">
             ${
