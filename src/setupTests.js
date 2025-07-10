@@ -56,3 +56,4 @@ const intersectionObserverMock = () => ({
   disconnect: () => null,
 });
 window.IntersectionObserver = vi.fn().mockImplementation(intersectionObserverMock);
+HTMLAnchorElement.prototype.click = vi.fn();

@@ -2,8 +2,10 @@ import BaseComponent from "@/core/component";
 import { ProductDetailPageViewModel } from "./view-model";
 import { getProduct, getProducts } from "@/api/productApi";
 import { clsx } from "clsx";
-import { addToCart } from "@/store";
+import { bulkAddToCart } from "@/store";
 import { Toast } from "@/components";
+
+import { navigateTo } from "@/core/router";
 
 export default class ProductDetailPageView extends BaseComponent {
   constructor(target, params = {}) {
@@ -26,6 +28,8 @@ export default class ProductDetailPageView extends BaseComponent {
         this.handleDecreaseQuantity();
       } else if (event.target.closest("#add-to-cart-btn")) {
         this.handleAddToCart(event);
+      } else if (event.target.closest("#related-product-card")) {
+        this.handleRelatedProductClick(event);
       }
     });
 
@@ -60,7 +64,7 @@ export default class ProductDetailPageView extends BaseComponent {
       const relatedProducts = await getProducts({
         category1: product.category1,
         category2: product.category2,
-        limit: 10,
+        limit: 20,
       });
 
       this.setState({ loading: false, product, relatedProducts: relatedProducts.products });
@@ -100,12 +104,18 @@ export default class ProductDetailPageView extends BaseComponent {
     };
 
     // 장바구니에 추가
-    const success = addToCart(cartItem);
+    const success = bulkAddToCart(cartItem, this.state.quantity);
 
     if (success) {
       // 성공 시 시각적 피드백
       this.showAddToCartFeedback();
     }
+  }
+
+  handleRelatedProductClick(event) {
+    event.preventDefault();
+    const productId = event.target.closest("#related-product-card").dataset.productId;
+    navigateTo(`/product/${productId}`);
   }
 
   /**
@@ -158,7 +168,7 @@ export default class ProductDetailPageView extends BaseComponent {
           <!-- 상품 정보 -->
           <div>
             <p class="text-sm text-gray-600 mb-1">${this.state.product.brand}</p>
-            <h1 class="text-xl font-bold text-gray-900 mb-3">${this.state.product.title}</h1>
+            <h1 class="text-xl font-bold text-gray-900 mb-3" data-testid="product-title">${this.state.product.title}</h1>
             <!-- 평점 및 리뷰 -->
             <div class="flex items-center mb-3">
               <div class="flex items-center">
@@ -248,9 +258,10 @@ export default class ProductDetailPageView extends BaseComponent {
         <div class="p-4">
           <div class="grid grid-cols-2 gap-3 responsive-grid">
             ${this.state.relatedProducts
+              .filter((relatedProduct) => relatedProduct.productId !== this.state.product.productId)
               .map(
                 (relatedProduct) => /* html */ `
-                  <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="86940857379">
+                  <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="${relatedProduct.productId}" id="related-product-card">
                     <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
                       <img src="${relatedProduct.image}" alt="${relatedProduct.title}" class="w-full h-full object-cover" loading="lazy">
                     </div>
@@ -260,21 +271,6 @@ export default class ProductDetailPageView extends BaseComponent {
                 `,
               )
               .join("")}
-            
-            <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="86940857379">
-              <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-                <img src="https://shopping-phinf.pstatic.net/main_8694085/86940857379.1.jpg" alt="샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이" class="w-full h-full object-cover" loading="lazy">
-              </div>
-              <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이</h3>
-              <p class="text-sm font-bold text-blue-600">230원</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-3 related-product-card cursor-pointer" data-product-id="82094468339">
-              <div class="aspect-square bg-white rounded-md overflow-hidden mb-2">
-                <img src="https://shopping-phinf.pstatic.net/main_8209446/82094468339.4.jpg" alt="실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제" class="w-full h-full object-cover" loading="lazy">
-              </div>
-              <h3 class="text-sm font-medium text-gray-900 mb-1 line-clamp-2">실리카겔 50g 습기제거제 제품 /산업 신발 의류 방습제</h3>
-              <p class="text-sm font-bold text-blue-600">280원</p>
-            </div>
           </div>
         </div>
       </div>

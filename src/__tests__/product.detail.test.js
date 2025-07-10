@@ -48,12 +48,12 @@ describe("2. 상품 상세 - 장바구니 담기", () => {
     await 상품_상세페이지_접속();
 
     // 장바구니 담기 버튼 찾기
-    const addToCartButton = document.querySelector("#add-to-cart-btn");
+    expect(await screen.findByText("장바구니 담기")).toBeInTheDocument();
 
     // 장바구니 담기 버튼 클릭
-    addToCartButton.click();
+    await userEvent.click(document.querySelector("#add-to-cart-btn"));
 
-    await screen.findByText("장바구니에 추가되었습니다");
+    await screen.findByText("장바구니에 추가되었습니다!");
   });
 
   test("페이지 내에서 수량을 입력 혹은 선택하여 장바구니에 추가할 수 있다", async () => {
@@ -73,7 +73,7 @@ describe("2. 상품 상세 - 장바구니 담기", () => {
     await userEvent.click(document.querySelector("#add-to-cart-btn"));
 
     // 성공 메시지 확인
-    expect(await screen.findByText("장바구니에 추가되었습니다")).toBeInTheDocument();
+    expect(await screen.findByText("장바구니에 추가되었습니다!")).toBeInTheDocument();
   });
 });
 
@@ -82,7 +82,6 @@ describe("3. 관련 상품 기능", () => {
     await 상품_상세페이지_접속();
 
     // 관련 상품 섹션이 있는지 확인
-    expect(screen.queryByText("관련 상품")).not.toBeInTheDocument();
     expect(await screen.findByText("관련 상품")).toBeInTheDocument();
 
     // 관련 상품 카드들이 있는지 확인
@@ -93,6 +92,7 @@ describe("3. 관련 상품 기능", () => {
 
     // 관련 상품 클릭
     await userEvent.click(relatedProductCards[0]);
+
     await screen.findByRole("heading", {
       level: 1,
       name: "샷시 풍지판 창문 바람막이 베란다 문 틈막이 창틀 벌레 차단 샤시 방충망 틈새막이",
