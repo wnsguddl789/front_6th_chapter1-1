@@ -23,6 +23,12 @@ class CartStore extends Store {
     this.setupPersistStore();
   }
 
+  setupInitial() {
+    if (!localStorage.getItem("shopping_cart")) {
+      localStorage.setItem("shopping_cart", JSON.stringify(CART_INITIAL_STATE));
+    }
+  }
+
   /**
    * 영구 저장소 설정
    */
@@ -31,7 +37,7 @@ class CartStore extends Store {
       storageType: "local",
       storageKey: "shopping_cart",
       whitelist: ["items", "count", "totalPrice", "selectedItems", "isAllSelected"],
-      debounceTime: 300,
+      debounceTime: 0,
       version: 1,
       transforms: [
         {

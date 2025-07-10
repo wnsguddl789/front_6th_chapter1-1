@@ -1,5 +1,5 @@
 import AppComponent from "@/app";
-import { router, navigateTo } from "@/core/router";
+import { navigateTo, router } from "@/core/router";
 
 const enableMocking = () =>
   import("./mocks/browser.js").then(({ worker }) =>

@@ -693,6 +693,7 @@ export default class HomePage extends BaseComponent {
   }
 
   productGridTemplate(products = []) {
+    console.log(products);
     return products
       .map(
         (product) => /* html */ `
@@ -713,7 +714,7 @@ export default class HomePage extends BaseComponent {
                 <h3 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
                   ${product.title}
                 </h3>
-                <p class="text-xs text-gray-500 mb-2"></p>
+                <p class="text-xs text-gray-500 mb-2">${product.brand}</p>
                 <p class="text-lg font-bold text-gray-900">
                   ${parseInt(product.lprice).toLocaleString()}원
                 </p>

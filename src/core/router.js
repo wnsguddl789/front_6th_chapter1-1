@@ -104,7 +104,7 @@ const router = async () => {
   // 매치되지 않는 경우 404 페이지 표시
   if (!match) {
     match = {
-      route: { path: "/404", view: NotFoundPageView },
+      route: { path: "/404", view: NotFoundPageView, header: null },
       result: [location.pathname],
     };
   }
@@ -147,9 +147,9 @@ const router = async () => {
 
   // 새로운 컴포넌트 인스턴스 생성 및 렌더링 (파라미터 전달)
   const view = new match.route.view(mainElement, params);
-  const header = new match.route.header(headerElement, params);
+  const header = match.route.header ? new match.route.header(headerElement, params) : null;
   mainElement.innerHTML = view.template();
-  headerElement.innerHTML = header.template();
+  headerElement.innerHTML = header ? header.template() : "";
 
   // 뷰 인스턴스를 메인 요소에 저장
   mainElement._viewInstance = view;
@@ -159,7 +159,7 @@ const router = async () => {
     view.componentDidMount();
   }
 
-  if (header.componentDidMount) {
+  if (header && header.componentDidMount) {
     header.componentDidMount();
   }
 };
