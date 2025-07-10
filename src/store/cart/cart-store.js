@@ -29,6 +29,10 @@ class CartStore extends Store {
     }
   }
 
+  resetInitialState() {
+    this.state = { ...CART_INITIAL_STATE };
+  }
+
   /**
    * 영구 저장소 설정
    */
