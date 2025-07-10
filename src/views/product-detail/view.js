@@ -5,7 +5,7 @@ import { clsx } from "clsx";
 import { bulkAddToCart } from "@/store";
 import { Toast } from "@/components";
 
-import { navigateTo } from "@/core/router";
+import { navigateTo, getFullPath } from "@/core/router";
 
 export default class ProductDetailPageView extends BaseComponent {
   constructor(target, params = {}) {
@@ -115,7 +115,7 @@ export default class ProductDetailPageView extends BaseComponent {
   handleRelatedProductClick(event) {
     event.preventDefault();
     const productId = event.target.closest("#related-product-card").dataset.productId;
-    navigateTo(`/product/${productId}`);
+    navigateTo(getFullPath(`/product/${productId}`));
   }
 
   /**
@@ -142,7 +142,7 @@ export default class ProductDetailPageView extends BaseComponent {
     return /* html */ `
       <nav class="mb-4">
         <div class="flex items-center space-x-2 text-sm text-gray-600">
-          <a href="/" data-link="" class="hover:text-blue-600 transition-colors">홈</a>
+          <a href="/" data-link="/" class="hover:text-blue-600 transition-colors">홈</a>
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
           </svg>
@@ -241,7 +241,7 @@ export default class ProductDetailPageView extends BaseComponent {
       
       <!-- 상품 목록으로 이동 -->
       <div class="mb-6">
-        <a href="/" data-link="">
+        <a href="/" data-link="/">
           <button class="block w-full text-center bg-gray-100 text-gray-700 py-3 px-4 rounded-md 
             hover:bg-gray-200 transition-colors go-to-product-list">
             상품 목록으로 돌아가기

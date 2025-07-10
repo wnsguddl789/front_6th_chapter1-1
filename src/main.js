@@ -1,12 +1,8 @@
 import AppComponent from "@/app";
-import { navigateTo, router } from "@/core/router";
+import { navigateTo, router, getFullPath } from "@/core/router";
 
 const enableMocking = () =>
-  import("./mocks/browser.js").then(({ worker }) =>
-    worker.start({
-      onUnhandledRequest: "bypass",
-    }),
-  );
+  import("./mocks/browser.js").then(({ worker, workerOptions }) => worker.start(workerOptions));
 
 window.addEventListener("popstate", router);
 
@@ -14,7 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.addEventListener("click", (e) => {
     if (e.target && e.target.matches("[data-link]")) {
       e.preventDefault();
-      navigateTo(e.target.href);
+      const link = e.target.dataset.link;
+      navigateTo(getFullPath(link));
     }
   });
 });

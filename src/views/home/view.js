@@ -3,7 +3,7 @@ import BaseComponent from "@/core/component";
 import { getProducts, getCategories } from "@/api/productApi";
 import { HomePageViewModel } from "./view-model";
 
-import { getSearchParams, updateSearchParams, navigateTo } from "@/core/router";
+import { getSearchParams, updateSearchParams, navigateTo, getFullPath } from "@/core/router";
 import { addToCart } from "@/store";
 import { Toast } from "@/components";
 import { clsx } from "clsx";
@@ -191,7 +191,7 @@ export default class HomePage extends BaseComponent {
       return;
     }
 
-    navigateTo(`/product/${productId}`);
+    navigateTo(getFullPath(`/product/${productId}`));
   }
 
   handleCategoryFilter(event) {

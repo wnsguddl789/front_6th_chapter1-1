@@ -7,9 +7,12 @@ import {
 } from "@/views";
 import { getElement } from "@/utils";
 
+const BASE_PATH = import.meta.env.PROD ? "/front_6th_chapter1-1" : "";
+
 const pathToRegex = (path) => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 
 const navigateTo = (url) => {
+  console.log(getFullPath(url), url);
   history.pushState(null, "", url);
   router();
 };
@@ -87,10 +90,18 @@ const removePopstateListener = (handler) => {
   window.removeEventListener("popstate", handler);
 };
 
+export const getAppPath = (fullPath = window.location.pathname) => {
+  return fullPath.startsWith(BASE_PATH) ? fullPath.slice(BASE_PATH.length) || "/" : fullPath;
+};
+
+export const getFullPath = (appPath) => {
+  return BASE_PATH + appPath;
+};
+
 const router = async () => {
   const routes = [
-    { path: "/", view: HomePageView, header: ProductListHeaderComponent },
-    { path: "/product/:id", view: ProductDetailPageView, header: ProductDetailHeaderComponent },
+    { path: getFullPath("/"), view: HomePageView, header: ProductListHeaderComponent },
+    { path: getFullPath("/product/:id"), view: ProductDetailPageView, header: ProductDetailHeaderComponent },
   ];
 
   // Test each route for potential match
