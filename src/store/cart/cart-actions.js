@@ -22,9 +22,21 @@ export const addToCart = (product) => {
     }
 
     cartStore.addItem(product);
+    return true;
+  } catch (error) {
+    console.error("장바구니 추가 중 오류:", error);
+    return false;
+  }
+};
 
-    // 성공 피드백 (토스트 메시지 등)
-    console.log(`${product.title}이(가) 장바구니에 추가되었습니다.`);
+export const bulkAddToCart = (product, quantity) => {
+  try {
+    if (!product || !product.id) {
+      console.error("상품 정보가 올바르지 않습니다.", product);
+      return false;
+    }
+
+    cartStore.bulkAddItem(product, quantity);
     return true;
   } catch (error) {
     console.error("장바구니 추가 중 오류:", error);

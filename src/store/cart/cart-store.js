@@ -23,6 +23,10 @@ class CartStore extends Store {
     this.setupPersistStore();
   }
 
+  resetInitialState() {
+    this.state = { ...CART_INITIAL_STATE };
+  }
+
   /**
    * 영구 저장소 설정
    */
@@ -161,6 +165,31 @@ class CartStore extends Store {
     }
 
     this.updateCartState(newItems, "ADD_ITEM");
+  }
+
+  bulkAddItem(product, quantity) {
+    const currentItems = this.getItems();
+    const existingItemIndex = currentItems.findIndex((item) => item.id === product.id);
+
+    let newItems;
+    if (existingItemIndex !== -1) {
+      // 기존 아이템 수량 증가
+      newItems = currentItems.map((item, index) =>
+        index === existingItemIndex ? { ...item, quantity: (item.quantity || 1) + quantity } : item,
+      );
+    } else {
+      // 새 아이템 추가
+      newItems = [
+        ...currentItems,
+        {
+          ...product,
+          quantity: quantity,
+          addedAt: Date.now(),
+        },
+      ];
+    }
+
+    this.updateCartState(newItems, "BULK_ADD_ITEM");
   }
 
   /**
@@ -414,8 +443,16 @@ class CartStore extends Store {
     // 상태를 초기 상태로 리셋
     this.state = { ...CART_INITIAL_STATE };
 
+    // localStorage에서 장바구니 데이터 제거
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("shopping_cart");
+    }
+
     // 퍼시스트 스토어 재설정
     this.setupPersistStore();
+
+    // 상태 변경을 알림
+    this.notify("RESET");
   }
 }
 
