@@ -617,7 +617,7 @@ export default class HomePage extends BaseComponent {
               `
               : /*html */ `
               <div class="mb-4 text-sm text-gray-600">
-                ${HomePageViewModel.MESSAGES.TOTAL_PRODUCTS} <span class="font-medium text-gray-900">${this.state.pagination.total}${HomePageViewModel.MESSAGES.PRODUCTS_UNIT}</span>${HomePageViewModel.MESSAGES.PRODUCTS_SUFFIX}
+                총 ${this.state.pagination.total}개의 상품
               </div>
             `
           }
