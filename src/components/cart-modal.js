@@ -160,7 +160,6 @@ export default class CartModal extends BaseComponent {
 
   handleIncreaseQuantity(productId) {
     const item = getCartItems().find((item) => item.id === productId);
-    console.log("handleIncreaseQuantity", productId);
     if (item) {
       updateCartItemQuantity(productId, item.quantity + 1);
     }
@@ -361,6 +360,7 @@ export default class CartModal extends BaseComponent {
               type="number" 
               value="${item.quantity}" 
               min="1" 
+              data-testid="quantity-input"
               class="quantity-input w-12 h-7 text-center text-sm border-t border-b border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
               disabled 
               data-product-id="${item.id}"
