@@ -77,12 +77,7 @@ export default class HomePage extends BaseComponent {
       category2: this.state.filters.category2,
     };
 
-    updateSearchParams(params, {
-      defaults: {
-        sort: HomePageViewModel.INITIAL_STATE.filters.sort,
-        limit: HomePageViewModel.INITIAL_STATE.pagination.limit,
-      },
-    });
+    updateSearchParams(params, {});
   }
 
   async componentDidMount() {

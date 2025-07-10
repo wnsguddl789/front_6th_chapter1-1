@@ -120,9 +120,9 @@ export default class AppComponent extends BaseComponent {
         <div id="header-container"></div>
         
         <!-- 메인 콘텐츠 -->
-        <main class="max-w-md mx-auto px-4 py-4 mt-[72px] mb-[116px]">
+        <div class="max-w-md mx-auto px-4 py-4 mt-[72px] mb-[116px]">
           <div id="main" class="flex-1"></div>
-        </main>
+        </div>
         
         <!-- 푸터 컨테이너 -->
         <div id="footer-container"></div>
