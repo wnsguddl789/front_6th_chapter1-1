@@ -13,13 +13,16 @@ export default class ProductDetailHeaderComponent extends BaseComponent {
     });
   }
 
+  componentWillUnmount() {
+    // 부모 클래스의 componentWillUnmount 호출하여 이벤트 핸들러 정리
+    super.componentWillUnmount();
+  }
+
   initializeEventHandlers() {
     // 장바구니 아이콘 클릭 이벤트
-    this.target.addEventListener("click", (event) => {
-      if (event.target.closest("#cart-icon-btn")) {
-        event.preventDefault();
-        showCartModal();
-      }
+    this.addEventDelegate("click", "#cart-icon-btn", (e) => {
+      e.preventDefault();
+      showCartModal();
     });
   }
 

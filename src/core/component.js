@@ -8,6 +8,9 @@ export default class BaseComponent {
     // 재렌더링 시 보존할 요소들의 셀렉터를 지정
     this.preserveSelectors = props.preserveSelectors || [];
 
+    // 이벤트 핸들러 추적을 위한 Map 초기화
+    this._handlers = new Map();
+
     this.initialState();
   }
 
@@ -80,5 +83,41 @@ export default class BaseComponent {
     this.target.innerHTML = this.template();
 
     this.componentDidMount();
+  }
+
+  addEventDelegate(eventType, selector, callback) {
+    const handler = (e) => {
+      const target = e.target.closest(selector);
+      if (!target) return;
+
+      if (this.target.contains(target)) {
+        callback.call(this, e, target);
+      }
+    };
+
+    this.target.addEventListener(eventType, handler);
+
+    // 이벤트 핸들러 추적
+    if (!this._handlers.has(eventType)) {
+      this._handlers.set(eventType, new Set());
+    }
+    this._handlers.get(eventType).add(handler);
+
+    return () => this.removeEventHandler(eventType, handler);
+  }
+
+  removeEventHandler(eventType, handler) {
+    this.target.removeEventListener(eventType, handler);
+    this._handlers.get(eventType)?.delete(handler);
+  }
+
+  componentWillUnmount() {
+    // 모든 이벤트 핸들러 정리
+    this._handlers.forEach((handlers, eventType) => {
+      handlers.forEach((handler) => {
+        this.removeEventHandler(eventType, handler);
+      });
+    });
+    this._handlers.clear();
   }
 }

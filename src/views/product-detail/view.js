@@ -21,25 +21,24 @@ export default class ProductDetailPageView extends BaseComponent {
   }
 
   initializeEventHandlers() {
-    this.target.addEventListener("click", (event) => {
-      if (event.target.closest("#quantity-increase")) {
-        this.handleIncreaseQuantity();
-      } else if (event.target.closest("#quantity-decrease")) {
-        this.handleDecreaseQuantity();
-      } else if (event.target.closest("#add-to-cart-btn")) {
-        this.handleAddToCart(event);
-      } else if (event.target.closest("#related-product-card")) {
-        this.handleRelatedProductClick(event);
-      }
+    this.addEventDelegate("click", "#quantity-increase", () => {
+      this.handleIncreaseQuantity();
     });
 
-    this.target.addEventListener("input", (event) => {
-      switch (event.target.id) {
-        case "quantity-input": {
-          this.handleChangeQuantity(event);
-          break;
-        }
-      }
+    this.addEventDelegate("click", "#quantity-decrease", () => {
+      this.handleDecreaseQuantity();
+    });
+
+    this.addEventDelegate("click", "#add-to-cart-btn", (e) => {
+      this.handleAddToCart(e);
+    });
+
+    this.addEventDelegate("click", "#related-product-card", (e) => {
+      this.handleRelatedProductClick(e);
+    });
+
+    this.addEventDelegate("input", "#quantity-input", (e) => {
+      this.handleChangeQuantity(e);
     });
   }
 

@@ -735,56 +735,47 @@ export default class HomePage extends BaseComponent {
   }
 
   initializeEventHandlers() {
-    // 이벤트 위임 사용 - 상위 요소에 이벤트 부착
-    this.target.addEventListener("submit", (event) => {
-      this.handleFormSubmit(event);
+    // 폼 제출 이벤트
+    this.addEventDelegate("submit", "form", (e) => {
+      this.handleFormSubmit(e);
     });
 
-    this.target.addEventListener("input", (event) => {
-      switch (event.target.id) {
-        case "search-input": {
-          this.handleChangeSearch(event);
-          break;
-        }
-      }
+    // 검색어 입력 이벤트
+    this.addEventDelegate("input", "#search-input", (e) => {
+      this.handleChangeSearch(e);
     });
 
-    this.target.addEventListener("change", (event) => {
-      switch (event.target.id) {
-        case "limit-select": {
-          this.handleChangeLimit(event);
-          break;
-        }
-        case "sort-select": {
-          this.handleChangeSort(event);
-          break;
-        }
-      }
+    // 정렬 및 필터 변경 이벤트
+    this.addEventDelegate("change", "#limit-select", (e) => {
+      this.handleChangeLimit(e);
     });
 
-    // 클릭 이벤트 처리
-    this.target.addEventListener("click", (event) => {
-      switch (event.target.id) {
-        case "add-to-cart-btn": {
-          event.stopPropagation(); // 이벤트 전파 방지
-          this.handleAddToCart(event);
-          break;
-        }
-        case "category-filter-btn": {
-          event.stopPropagation(); // 이벤트 전파 방지
-          this.handleCategoryFilter(event);
-          break;
-        }
-        case "bread-crumb-btn": {
-          event.stopPropagation(); // 이벤트 전파 방지
-          this.handleBreadCrumbClick(event);
-          break;
-        }
-      }
+    this.addEventDelegate("change", "#sort-select", (e) => {
+      this.handleChangeSort(e);
+    });
 
-      // 상품 카드 클릭 처리 (버튼 클릭이 아닌 경우에만)
-      if (event.target.closest("#product-card") && !event.target.closest("button")) {
-        this.handleProductCardClick(event);
+    // 장바구니 추가 버튼 클릭
+    this.addEventDelegate("click", "#add-to-cart-btn", (e) => {
+      e.stopPropagation();
+      this.handleAddToCart(e);
+    });
+
+    // 카테고리 필터 버튼 클릭
+    this.addEventDelegate("click", "#category-filter-btn", (e) => {
+      e.stopPropagation();
+      this.handleCategoryFilter(e);
+    });
+
+    // 브레드크럼 버튼 클릭
+    this.addEventDelegate("click", "#bread-crumb-btn", (e) => {
+      e.stopPropagation();
+      this.handleBreadCrumbClick(e);
+    });
+
+    // 상품 카드 클릭 (버튼 제외)
+    this.addEventDelegate("click", "#product-card", (e) => {
+      if (!e.target.closest("button")) {
+        this.handleProductCardClick(e);
       }
     });
   }
